@@ -16,7 +16,7 @@ def get_quote(id):
             new_quote QUOTE(author,text)
             quote_details.append(new_quote)
 
-    return quote_object
+    return quote_details
 
 # Getting api key
 QUOTES_API_BASE_URL = app.config['http://quotes.stormconsultancy.co.uk/random.json']
