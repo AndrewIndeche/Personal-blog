@@ -7,4 +7,13 @@
 {% endblock %}
 
 <h1 class="text-center"><strong>Welcome to My Blog page</strong></h1>
-<p class="text-center text danger" style="font-weight:normal;font-size:20px">Pitch your recipe ideas to get feedback from our community</p>
+<p class="text-center text danger" style="font-weight:normal;font-size:20px">Write your Feelings Out</p>
+<body>
+        <!-- Popular movie section  -->
+        <h3> Random Quotes</h3>
+         <ul>
+            {% for random_quote in random %}
+                <li>{{ random_quote.quote}}</li>
+            {% endfor %}
+        </ul>
+ </body>
