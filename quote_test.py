@@ -1,6 +1,6 @@
 import unittest
 from models import quote
- Quote= quote.Quote
+Quote= quote.Quote
 
 class QuoteTest(unittest.TestCase):
     '''
@@ -11,7 +11,7 @@ class QuoteTest(unittest.TestCase):
         '''
         Set up method that will run before every Test
         '''
-        self.new_quote = Quote("author":"Charles Babbage","id":8,"quote":"On two occasions I have been asked, \u2018Pray, Mr. Babbage, if you put into the machine wrong figures, will the right answers come out?\u2019 I am not able rightly to apprehend the kind of confusion of ideas that could provoke such a question.\u201d","permalink":"http://quotes.stormconsultancy.co.uk/quotes/8")
+        self.new_quote = Quote("Charles Babbage","8","On two occasions I have been asked, \u2018Pray, Mr. Babbage, if you put into the machine wrong figures, will the right answers come out?\u2019 I am not able rightly to apprehend the kind of confusion of ideas that could provoke such a question.\u201d","http://quotes.stormconsultancy.co.uk/quotes/8")
 
     def test_instance(self):
         self.assertTrue(isinstance(self.new_quote,Quote))
