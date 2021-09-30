@@ -1,5 +1,6 @@
-from app import app
-def get_quote(id):
+from .models import Quote
+import urllib.request,json
+def get_quote():
     get_quote_details_url = QUOTES_API_BASE_URL.format(id)
 
     with urllib.request.urlopen(get_quote_details_url) as url:
@@ -13,10 +14,10 @@ def get_quote(id):
             title = quote_details_response.get('original_title')
             text = quote_details_response.get('quote')
 
-            new_quote QUOTE(author,text)
+            new_quote = QUOTE(author,text)
             quote_details.append(new_quote)
 
     return quote_details
 
 # Getting api key
-QUOTES_API_BASE_URL = app.config['http://quotes.stormconsultancy.co.uk/random.json']
+QUOTES_API_BASE_URL = 'http://quotes.stormconsultancy.co.uk/random.json'
