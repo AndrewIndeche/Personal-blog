@@ -1,15 +1,21 @@
 {% extends 'base.html'%}
-{% import 'macros.html' as macro%}
 
 {% block styles%}
     {{ super() }}
     <link rel="stylesheet" href="{{url_for('static',filename='css/index.css')}}">
 {% endblock %}
+{% block content %}
+    <div class="container landing">
+        <div class="row ">
+                {% if current_user.is_authenticated %}
+                <div class="col-md-3 "><a class="btn btn-sm btn-info " id="ref" href="{{url_for('main.new_quote')}}">Post</a></div>
+                {% endif %}
 
 <h1 class="text-center"><strong>Welcome to My Blog page</strong></h1>
+
 <p class="text-center text danger" style="font-weight:normal;font-size:20px">Write your Feelings Out</p>
 <body>
-        <!-- Popular movie section  -->
+        <!-- Random quotes section  -->
         <h3> Random Quotes</h3>
          <ul>
             {% for random_quote in random %}

@@ -1,0 +1,30 @@
+<div class="mb-1 navbar navbar-expand-lg navbar-danger ">
+<div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" style="font-size:40px ;color: white" href="{{url_for('main.index')}}"><strong>Recipe Pitch Page<strong></a>
+    </div>
+      <br>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent-4">
+      <ul class="navbar-nav mr-auto">
+      {% if current_user.is_authenticated %}
+      <li class="nav-item">
+      <li><a class="nav-link"  href="{{url_for('main.new_pitch')}}" style="font-size:25px ;color: white;center"><span class="glyphicon glyphicon-plus" style="color: white"></span> <strong>Create New Pitch<strong></a></li>
+      {% endif %}
+        </ul>
+        </div>
+      <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+      <ul class="nav navbar-nav navbar-right">
+        {% if current_user.is_authenticated %}
+        <li style="color:white;padding:15px;font-size:20px ">{{current_user.username}}</li>
+        <li><a href="{{url_for('main.profile',uname=current_user.username)}}"><span class="glyphicon glyphicon-user" style="color: white"></span>Profile</a></li>
+        <li><a href="{{url_for('auth.logout')}}"><span class="glyphicon glyphicon-off" style="color: white"></span> Logout</a></li>
+         {% else %}
+        <li><a href="{{url_for('auth.login')}}"><span class="glyphicon glyphicon-log-in" style="color: white"></span> Login</a></li>
+          {%endif%}
+        <li><a href="{{url_for('auth.register')}}"><span class="glyphicon glyphicon-log-out" style="color: white"></span> Sign Up</a></li>
+        </ul>
+    </div>
+    </nav>
+    </div>

@@ -1,7 +1,6 @@
-from . import db
+from . import db,login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
-from . import login_manager
+from flask_login import current_user,UserMixin
 from datetime import datetime
 
 class Quote():
@@ -25,7 +24,7 @@ class User(UserMixin, db.Model):
     about = db.Column(db.String(255))
     avatar = db.Column(db.String())
     password_encrypt=db.Column(db.String(128))
-    pitches = db.relationship('Pitches', backref='user', lazy='dynamic')
+    quotes = db.relationship('quotes', backref='user', lazy='dynamic')
     comments = db.relationship('Comments', backref='comments', lazy='dynamic')
 
     @property   #write-only
@@ -43,26 +42,26 @@ class User(UserMixin, db.Model):
         return f'User{self.username}'
 
 
-class Pitches(db.Model):
-    __tablename__='pitches'
+class Quotes(db.Model):
+    __tablename__='quotes'
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     posted = db.Column(db.DateTime, default=datetime.utcnow)
-    comments = db.relationship('Comments', backref='pitch', lazy='dynamic')
+    comments = db.relationship('Comments', backref='quote', lazy='dynamic')
 
-    def save_pitch(self):
+    def save_quote(self):
         db.session.add(self)
         db.session.commit()
 
     def __repr__(self):
-        return f'Pitches{self.text}'
+        return f'Quotes{self.text}'
 
 
 class Comments(db.Model):
     __tablename__='comments'
     id = db.Column(db.Integer, primary_key=True)
-    pitch_id = db.Column(db.Integer, db.ForeignKey('pitches.id'))
+    quote_id = db.Column(db.Integer, db.ForeignKey('quotes.id'))
     comment = db.Column(db.String(), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
@@ -71,8 +70,8 @@ class Comments(db.Model):
         db.session.commit()
 
     @classmethod
-    def get_comments(cls,pitch_id):
-        comments = Comments.query.filter_by(pitch_id=pitch_id)
+    def get_comments(cls,quote_id):
+        comments = Comments.query.filter_by(quote_id=quote_id)
         return comments
 
     def __repr__(self):

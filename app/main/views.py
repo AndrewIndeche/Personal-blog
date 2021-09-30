@@ -1,6 +1,6 @@
 from flask import render_template,request,redirect,url_for,abort
-from ..models import User, Quote, Comments
-from ..request import get_quote
+from ..models import User, Quote,Quotes, Comments
+from ..requests import get_quotes
 from flask_login import login_required, current_user
 from .. import db,photos
 from . import main
@@ -13,16 +13,16 @@ def index():
     '''
     View root page function that returns the index page and its data
     '''
-    quote = get_quote()
+    quote = get_quotes()
 
     quotes=Quotes.query.all()
     id = Quotes.user_id
     posted_by = User.query.filter_by(id=identification).first()
     user = User.query.filter_by(id=current_user.get_id()).first()
 
-    recent_post = Quotes.query.order_by(desc(Quotes.id)).all()
+    recent_post = Quotes.query.order_by(desc(Pitches.id)).all()
 
-    return render_template('quotes.html', quote=quote, posted_by=posted_by, user=user, recent_post=recent_post)
+    return render_template('quotes.html', quote=quotes, posted_by=posted_by, user=user, recent_post=recent_post)
 
 @main.route('/create_new', methods = ['POST','GET'])
 @login_required
