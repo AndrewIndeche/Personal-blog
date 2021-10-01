@@ -13,9 +13,8 @@ class UpdatePost(FlaskForm):
     text = TextAreaField('Edit post here',validators = [Required()])
     submit = SubmitField('Update')
 
-
-class QuoteForm(FlaskForm):
-    quote_text = TextAreaField('Your quote here', validators=[Required()])
+class PitchForm(FlaskForm):
+    pitch_text = TextAreaField('Your pitch here', validators=[Required()])
     submit = SubmitField('Post')
 
 

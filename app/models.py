@@ -1,14 +1,15 @@
-from . import db,login_manager
+from . import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import current_user,UserMixin
+from flask_login import UserMixin
+from . import login_manager
 from datetime import datetime
+from app import create_app
+
 
 class Quote():
-    def __init__(self,user,id,quote,permalink):
-        self.user = user
-        self.id = id
-        self.quote= quote
-        self.permalink = permalink
+    def __init__(self, author, text):
+        self.author=author
+        self.text=text
 
 
 @login_manager.user_loader
@@ -24,7 +25,7 @@ class User(UserMixin, db.Model):
     about = db.Column(db.String(255))
     avatar = db.Column(db.String())
     password_encrypt=db.Column(db.String(128))
-    quotes = db.relationship('quotes', backref='user', lazy='dynamic')
+    pitches = db.relationship('Pitches', backref='user', lazy='dynamic')
     comments = db.relationship('Comments', backref='comments', lazy='dynamic')
 
     @property   #write-only
@@ -42,26 +43,26 @@ class User(UserMixin, db.Model):
         return f'User{self.username}'
 
 
-class Quotes(db.Model):
-    __tablename__='quotes'
+class Pitches(db.Model):
+    __tablename__='pitches'
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     posted = db.Column(db.DateTime, default=datetime.utcnow)
-    comments = db.relationship('Comments', backref='quote', lazy='dynamic')
+    comments = db.relationship('Comments', backref='pitch', lazy='dynamic')
 
-    def save_quote(self):
+    def save_pitch(self):
         db.session.add(self)
         db.session.commit()
 
     def __repr__(self):
-        return f'Quotes{self.text}'
+        return f'Pitches{self.text}'
 
 
 class Comments(db.Model):
     __tablename__='comments'
     id = db.Column(db.Integer, primary_key=True)
-    quote_id = db.Column(db.Integer, db.ForeignKey('quotes.id'))
+    pitch_id = db.Column(db.Integer, db.ForeignKey('pitches.id'))
     comment = db.Column(db.String(), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
@@ -70,8 +71,8 @@ class Comments(db.Model):
         db.session.commit()
 
     @classmethod
-    def get_comments(cls,quote_id):
-        comments = Comments.query.filter_by(quote_id=quote_id)
+    def get_comments(cls,pitch_id):
+        comments = Comments.query.filter_by(pitch_id=pitch_id)
         return comments
 
     def __repr__(self):

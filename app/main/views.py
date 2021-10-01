@@ -1,117 +1,118 @@
-from flask import render_template,request,redirect,url_for,abort
-from ..models import User, Quote,Quotes, Comments
-from ..requests import get_quotes
-from flask_login import login_required, current_user
-from .. import db,photos
 from . import main
-from ..models import User,Quote,Comments
-from .forms import QuoteForm,EditProfile,CommentForm
+from flask import render_template, request, redirect, url_for, abort
+from ..models import User, Pitches, Comments
+from flask_login import login_required, current_user
+from .forms import EditProfile, PitchForm, CommentForm, UpdatePost
+from .. import db, photos
+from ..requests import get_quote
+from sqlalchemy import desc
+from ..email import mail_message
+
 
 @main.route('/')
 def index():
+    quote = get_quote()
 
-    '''
-    View root page function that returns the index page and its data
-    '''
-    quote = get_quotes()
-
-    quotes=Quotes.query.all()
-    id = Quotes.user_id
+    pitches=Pitches.query.all()
+    identification = Pitches.user_id
     posted_by = User.query.filter_by(id=identification).first()
     user = User.query.filter_by(id=current_user.get_id()).first()
 
-    recent_post = Quotes.query.order_by(desc(Pitches.id)).all()
+    recent_post = Pitches.query.order_by(desc(Pitches.id)).all()
 
-    return render_template('quotes.html', quote=quotes, posted_by=posted_by, user=user, recent_post=recent_post)
+    return render_template('index.html', quote=quote, pitches=pitches, posted_by=posted_by, user=user, recent_post=recent_post)
 
-@main.route('/create_new', methods = ['POST','GET'])
+
+@main.route('/new_pitch', methods=['GET','POST'])
 @login_required
-def new_quote():
-    form = QuoteForm()
+def pitch_form():
+    pitch_form = PitchForm()
+    if pitch_form.validate_on_submit():
+        text = pitch_form.pitch_text.data
+        new_pitch = Pitches(text=text, user=current_user)
+        new_pitch.save_pitch()
+
+        data = User.query.all()
+        for user in data:
+            mail_message('New post up!', 'email/new_post', user.email, user=user)
+            return redirect(url_for('main.home'))
+    return render_template('new_pitch.html', pitch_form=pitch_form, )
+
+
+@main.route('/edit_post/<int:pitch_id>', methods=['GET','POST'])
+@login_required
+def update_post(pitch_id):
+    pitch = Pitches.query.filter_by(id=pitch_id).first()
+
+    form = UpdatePost()
     if form.validate_on_submit():
-        title = form.title.data
-        post = form.post.data
-        category = form.category.data
-        user_id = current_user
-        new_quote_object = Quote(post=post,user_id=current_user._get_current_object().id,category=category,title=title)
-        new_quote_object.save_p()
-        return redirect(url_for('main.index'))
+        pitch.text=form.text.data
+        db.session.add(pitch)
+        db.session.commit()
+        return redirect(url_for('.home', pitch_id=pitch.id))
+    return render_template('edit_post.html', form=form)
 
-    return render_template('new_quote.html', form = form)
 
-@main.route('/user/<uname>',methods=['GET','POST'])
+@main.route('/delete_post/<int:pitch_id>', methods=['GET','POST'])
 @login_required
-def profile(uname):
-  user = User.query.filter_by(username=uname).first()
-  quotes=Quote.query.filter_by(user_id=user.id)
-  if user is None:
-    abort(404)
-  title = f'{user.username}'
-  return render_template('profile/profile.html',title=title,user = user,quotes=quotes)
+def delete_post(pitch_id):
+    pitch = Pitches.query.filter_by(id=pitch_id).first()
 
-@main.route('/delete_post/<int:quote_id>', methods=['GET','POST'])
-@login_required
-def delete_post(quote_id):
-    quote = Quotes.query.filter_by(id=quote_id).first()
-
-    db.session.delete(quote)
+    db.session.delete(pitch)
     db.session.commit()
-    return redirect(url_for('.home', quote_id=quote.id))
+    return redirect(url_for('.home', pitch_id=pitch.id))
 
-@main.route('/user/<name>/updateprofile', methods = ['POST','GET'])
-@login_required
-def updateprofile(name):
-    form = UpdateProfile()
-    user = User.query.filter_by(username = name).first()
-    if user == None:
-        abort(404)
-    if form.validate_on_submit():
-        user.bio = form.bio.data
-        user.save_u()
-        return redirect(url_for('.profile',name = name))
-    return render_template('profile/updateprofile.html',form =form)
 
-@main.route('/delete_comments/<int:comments_id>', methods=['GET','POST'])
-@login_required
-def delete_comment(comments_id):
-    comments = Comments.query.filter_by(id=comments_id).first()
+@main.route('/comments/<int:pitch_id>', methods=['GET','POST'])
+def pitch_comments(pitch_id):
+    comments = Comments.get_comments(pitch_id)
 
-    db.session.delete(comments)
-    db.session.commit()
-    return redirect(url_for('.home', comments_id=comments.id))
-
-@main.route('/comments/<int:quote_id>', methods=['GET','POST'])
-@login_required
-def quote_comments(quote_id):
-    comments = Comment.get_comments(quote_id)
-
-    quote = Quote.query.get(quote_id)
-    quote_posted_by = quote.user_id
-    user = User.query.filter_by(id=quote_posted_by).first()
+    pitch = Pitches.query.get(pitch_id)
+    pitch_posted_by = pitch.user_id
+    user = User.query.filter_by(id=pitch_posted_by).first()
 
     form = CommentForm()
     if form.validate_on_submit():
-        comment = form.quote_comment.data
-        new_comment = Comment(comment=comment, quote_id=quote_id, user_id=current_user.get_id())
-        new_comment.save_c()
-        return redirect(url_for('main.quote_comments',quote_id = quote_id))
+        comment = form.pitch_comment.data
+        new_comment = Comments(comment=comment, pitch_id=pitch_id, user_id=current_user.get_id())
+        new_comment.save_comment()
+        return redirect(url_for('main.pitch_comments',pitch_id = pitch_id))
 
-    return render_template('comments.html',form=form, comments=comments, quote = quote, user=user)
+    return render_template('comments.html', comment_form=form, comments=comments, pitch = pitch, user=user)
 
-@main.route('/user/<uname>/update/pic',methods= ['POST'])
+
+@main.route('/delete_comment/<int:comment_id>', methods=['GET','POST'])
 @login_required
-def update_pic(uname):
-    user = User.query.filter_by(username = uname).first()
-    if 'photo' in request.files:
-        filename = photos.save(request.files['photo'])
-        path = f'photos/{filename}'
-        user.profile_pic_path = path
-        db.session.commit()
-    return redirect(url_for('main.profile',uname=uname))
+def delete_comment(comment_id):
+    comment = Comments.query.filter_by(id=comment_id).first()
 
-    db.session.add(user)
+    db.session.delete(comment)
     db.session.commit()
+    return redirect(url_for('.home', comment_id=comment.id))
 
-    return redirect(url_for('.profile',uname=user.username))
+@main.route('/user/<name>', methods=['GET','POST'])
+@login_required
+def profile(name):
+    user = User.query.filter_by(username=name).first()
+    if user is None:
+        abort(404)
 
-    return render_template('new_quote.html',form =form)
+    form=EditProfile()
+    if form.validate_on_submit():
+        user.about=form.about.data
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for('.profile', name=user.username))
+    return render_template('profile/profile.html', user=user, form=form)
+
+
+@main.route('/user/<name>/edit/pic', methods=['POST'])
+@login_required
+def update_pic(name):
+    user=User.query.filter_by(username=name).first()
+    if 'photo' in request.files:
+        filename=photos.save(request.files['photo'])
+        path=f'photos/{filename}'
+        user.avatar=path
+        db.session.commit()
+    return redirect(url_for('main.profile', name=name))

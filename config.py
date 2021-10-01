@@ -1,11 +1,13 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
         #email config
 class Config:
     '''
     '''
-    QUOTES_API_BASE_URL = 'http://quotes.stormconsultancy.co.uk/random.json'
-    SQLALCHEMY_DATABASE_URI = ('postgresql+psycopg2://indeche:54321@localhost/blog')
+    SECRET_KEY = os.urandom(32)
+    url = 'http://quotes.stormconsultancy.co.uk/random.json'
     UPLOADED_PHOTOS_DEST ='app/static/photos'
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
@@ -17,7 +19,7 @@ class Config:
 class ProductionConfig(Config):
     '''
     '''
-    SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI='postgresql+psycopg2://andrew:Vixen123@localhost/blog'
 
 class DevelopmentConfig(Config):
     '''
